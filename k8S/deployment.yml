@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: etic-app-deployment
+  labels:
+    app: etic-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: etic-app
+  template:
+    metadata:
+      labels:
+        app: etic-app
+    spec:
+      containers:
+      - name: etic-app
+        image: iabdelrahmannn/etic-app-aws:v1
+        ports:
+        - containerPort: 5000
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
