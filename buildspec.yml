@@ -1,0 +1,35 @@
+version: 0.2
+
+env:
+  variables:
+    AWS_REGION: "us-east-1"          
+    CLUSTER_NAME: "etic-app-cluster" 
+    IMAGE_NAME: "etic-app-aws"
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Docker Hub...
+      - echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+
+  build:
+    commands:
+      - echo Build Docker image...
+      - docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:v1 .
+
+  post_build:
+    commands:
+      - echo Push image to Docker Hub...
+      - docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:v1
+      - echo Update kubeconfig...
+      - aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
+      - echo Apply Kubernetes manifests...
+      - kubectl apply -f k8S/deployment.yml
+      - kubectl apply -f k8S/services.yml
+      - echo Restart deployment to pick new image...
+      - kubectl rollout restart deployment/etic-app-deployment || true
+
+artifacts:
+  files:
+    - '**/*'
+
